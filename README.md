@@ -34,7 +34,7 @@ const firebaseConfig = {
 ## Bước 3 – Đăng website miễn phí với GitHub Pages
 1. Truy cập https://github.com/ rồi đăng nhập.
 2. Tạo repository mới, ví dụ `cay-cam-xuc` và chọn **Public**.
-3. Vào **Add file > Upload files**, tải lên `index.html` ở thư mục gốc, bấm **Commit changes**.
+3. Vào **Add file > Upload files**, tải lên toàn bộ các tệp và thư mục giao diện (xem cấu trúc ở cuối tài liệu), bấm **Commit changes**.
 4. Trong **Settings > Pages > Build and deployment**, chọn **Deploy from a branch**, Branch `main`, Folder `/(root)` rồi **Save**.
 5. Trang web có dạng `https://TEN_USER.github.io/cay-cam-xuc/`. Truy cập và nhấn **Tạo khu vườn cho lớp**.
 
@@ -61,15 +61,29 @@ Không nên đăng thông tin nhạy cảm vào repo public. File `database.rule
 - Giáo viên chỉ có quyền xóa trong đúng trình duyệt đã tạo phòng (hoặc cùng phiên đăng nhập Firebase còn lưu). Nếu mất phiên, tạo một phòng mới.
 - Không cần đưa ảnh, tên hay câu trả lời riêng tư của học sinh lên mạng.
 
-## C?c t?p giao di?n
+## Các tệp giao diện và âm thanh
 
-Khi ??a website l?n hosting, gi? nguy?n c?u tr?c:
+Khi đưa website lên hosting, tải lên đầy đủ và giữ nguyên cấu trúc:
 
 ```text
 index.html
 garden.css
+garden-audio.js
+garden-friends.js
+connai.webp
+connhim.webp
+chuA.webp
 assets/
   enchanted-garden.png
+  garden-friends.png
+  audio/
+    carefree.mp3
 ```
 
-Giao di?n v? c?c l??t th? ho?t ??ng m? kh?ng c?n k?t n?i Firebase. K?t n?i ???c kh?i t?o khi th?y c? t?o ph?ng ho?c khi m? li?n k?t ph?ng. C?c lu?ng ph?ng h?c ?? ???c ki?m tra v?i backend m? ph?ng; c?n ki?m tra ??ng b? tr?n c?c thi?t b? th?t tr??c gi? h?c.
+Nhạc nền được bật mặc định, phát lặp liên tục, không có nút tắt. Safari trên iPad và một số trình duyệt chặn âm thanh trước tương tác: trang sẽ tự khởi động nhạc và âm thanh sticker ngay khi người dùng chạm lần đầu. Nút nhạc trên đầu trang cho phép thử khởi động lại nếu trình duyệt vẫn chặn.
+
+Biểu tượng có cánh bay vào một vị trí ngẫu nhiên trong tán cây. Các lượt đang hiển thị giữ vị trí khi dữ liệu Firebase thay đổi; tối đa 70 biểu tượng gần nhất, số đếm vẫn bao gồm tất cả lượt. Tiếng sticker phát trên iPad khi chọn và trên màn hình giáo viên khi nhận lượt mới. Nút Hiệu ứng và tùy chọn giảm chuyển động của thiết bị được giữ lại.
+
+Chọn **Khám phá khu vườn**, rồi **Một nụ cười** hoặc **Một lời sẻ chia** để thử hiệu ứng bay và âm thanh mà không tạo dữ liệu Firebase.
+
+Bản quyền nhạc, ảnh và mô tả tạo nhân vật nằm trong `assets/README.md`.

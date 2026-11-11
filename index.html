@@ -13,7 +13,7 @@
 <div class="shell">
 <header class="top">
  <div class="brand"><span class="brand-icon" aria-hidden="true">🌼</span><div><strong>Khu vườn cảm xúc</strong><small>LỚP HỌC HẠNH PHÚC</small></div></div>
- <div class="nav-tools"><span id="connection" class="connection" role="status">Đang kết nối…</span><button class="tool-button" id="soundToggle" aria-pressed="false" aria-label="Bật âm thanh"><span id="soundIcon" aria-hidden="true">♫</span> <span class="tool-text" id="soundText">Âm thanh: tắt</span></button><button class="tool-button" id="motionToggle" aria-pressed="true" aria-label="Bật hoặc tắt hiệu ứng"><span aria-hidden="true">✧</span> <span class="tool-text">Hiệu ứng</span></button></div>
+ <div class="nav-tools"><span id="connection" class="connection" role="status">Đang kết nối…</span><button class="tool-button sound-status" id="soundToggle" aria-label="Khởi động âm thanh"><span id="soundIcon" aria-hidden="true">♫</span> <span class="tool-text" id="soundText">Nhạc đang chuẩn bị…</span></button><button class="tool-button" id="motionToggle" aria-pressed="true" aria-label="Bật hoặc tắt hiệu ứng"><span aria-hidden="true">✧</span> <span class="tool-text">Hiệu ứng</span></button></div>
 </header>
 <main>
 <section id="start" aria-labelledby="welcomeTitle">
@@ -35,14 +35,18 @@
  <div class="view-heading"><span class="eyebrow">Mỗi cảm xúc là một bông hoa</span><h1>Cây cảm xúc của lớp mình</h1><p>Chúng mình khác nhau, nhưng luôn cùng nhau lớn lên. 🌱</p></div>
  <div class="totals" aria-live="polite"><div class="count" id="total">🌼 0 bạn tham gia</div><div class="count" id="happyCount">😊 0 bạn vui</div><div class="count" id="blueCount">😔 0 bạn chưa vui</div></div>
  <div class="treebox" id="treebox"><img class="garden-photo" src="assets/enchanted-garden.png" width="1536" height="1024" alt="Cây cảm xúc nở hoa trong khu vườn"><div class="garden-live" id="gardenLive">● Khu vườn đang lớn lên</div><div class="atmosphere" aria-hidden="true"></div><span class="garden-butterfly b1" aria-hidden="true">🦋</span><span class="garden-butterfly b2" aria-hidden="true">🦋</span><div class="emojis" id="emojis"></div><div class="tree-label">🌼 Mỗi chúng mình là một điều đáng quý</div></div>
+ <div class="demo-emotions hidden" id="demoEmotions"><span>Thử gửi vào cây</span><button class="secondary" id="demoHappy">😊 Một nụ cười</button><button class="secondary" id="demoBlue">💙 Một lời sẻ chia</button></div>
  <div class="teachercontrols"><button class="secondary" id="fullscreen">⛶ Toàn màn hình</button><button class="secondary" id="toggleShare" aria-controls="share" aria-expanded="false">▦ Mã QR của lớp</button><button class="danger" id="reset">↻ Bắt đầu lượt mới</button></div>
  <div id="share" class="panel hidden"><h3>Mời các con vào khu vườn</h3><div class="qr" id="qr"></div><div class="linkbox"><code id="studentUrl"></code></div><button class="primary" id="copy">Sao chép đường dẫn học sinh ↗</button><p class="hint">Quét mã QR bằng iPad. Hai bạn cùng bàn lần lượt chọn cảm xúc nhé!</p></div><p class="note">💛 Thầy cô hãy đón nhận mọi cảm xúc và dành một lời hỏi thăm riêng cho các con cần được sẻ chia.</p>
 </section>
 </main>
-<button class="back-home hidden" id="home">← Về khu vườn nhỏ</button><footer class="footer-note"><span aria-hidden="true">✿</span> Một nơi để sẻ chia. Một nơi để lớn lên.</footer><p class="status" id="status" role="status" aria-live="polite"></p>
+<button class="back-home hidden" id="home">← Về khu vườn nhỏ</button><footer class="footer-note"><span aria-hidden="true">✿</span> Một nơi để sẻ chia. Một nơi để lớn lên.<small class="music-credit">♫ “Carefree” — <a href="https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400037" target="_blank" rel="noopener">Kevin MacLeod</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a></small></footer><p class="status" id="status" role="status" aria-live="polite"></p>
 </div>
+<audio id="backgroundMusic" src="assets/audio/carefree.mp3" loop preload="auto" playsinline></audio>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="module">
+import { startGardenAudio, playSticker } from "./garden-audio.js";
+import { decorateGarden } from "./garden-friends.js";
 /* THAY CÁC GIÁ TRỊ DƯỚI ĐÂY BẰNG FIREBASE CONFIG CỦA BẠN */
 const firebaseConfig = {
   apiKey: "AIzaSyBRCbiybQxsQmjYDL4qApcRjDR8SYKdg0M",
@@ -56,36 +60,69 @@ const $=id=>document.getElementById(id);const show=id=>{for(const x of ['start',
 const say=m=>$('status').textContent=m;
 let db,auth,uid,api,room='',mode='',votes={},step=1,demo=false,owner=false,previewStudent=false;
 const params=new URLSearchParams(location.search);
-let renderedVotes=[];
+const renderedVotes=new Map();
+const arrivalAnimations=new Set();
+let faceSequence=0,demoSequence=0,demoVotes={};
 const FACE_ART={happy:`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><radialGradient id="goldFace" cx="32%" cy="25%" r="80%"><stop stop-color="#fff9bd"/><stop offset=".48" stop-color="#ffda51"/><stop offset="1" stop-color="#ffaf3f"/></radialGradient></defs><circle cx="60" cy="60" r="54" fill="#ec9c39"/><circle cx="60" cy="56" r="52" fill="url(#goldFace)" stroke="#ffea86" stroke-width="2"/><ellipse cx="29" cy="75" rx="12" ry="7" fill="#ff8884" opacity=".6"/><ellipse cx="91" cy="75" rx="12" ry="7" fill="#ff8884" opacity=".6"/><path d="M29 48q11-14 22 0M69 48q11-14 22 0" stroke="#75452c" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M36 66q24 38 48 0" fill="#8a4937" stroke="#8a4937" stroke-width="5" stroke-linecap="round"/><path d="M44 79q16 13 32 0" fill="#fff7e7" stroke="#fff7e7" stroke-width="2"/><ellipse cx="39" cy="29" rx="17" ry="9" fill="#fff" opacity=".34" transform="rotate(-30 39 29)"/></svg>`,blue:`<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><radialGradient id="blueFace" cx="30%" cy="20%" r="85%"><stop stop-color="#f0fbff"/><stop offset=".45" stop-color="#9bd5fc"/><stop offset="1" stop-color="#5ba7e7"/></radialGradient></defs><circle cx="60" cy="60" r="54" fill="#4c95ce"/><circle cx="60" cy="56" r="52" fill="url(#blueFace)" stroke="#d6f4ff" stroke-width="2"/><ellipse cx="30" cy="74" rx="11" ry="7" fill="#f0a4c8" opacity=".45"/><ellipse cx="90" cy="74" rx="11" ry="7" fill="#f0a4c8" opacity=".45"/><path d="M32 41l18-4M70 37l18 4" stroke="#3f658c" stroke-width="5" stroke-linecap="round"/><ellipse cx="42" cy="55" rx="4.5" ry="6" fill="#34587d"/><ellipse cx="78" cy="55" rx="4.5" ry="6" fill="#34587d"/><path d="M45 84q15-13 30 0" fill="none" stroke="#416083" stroke-width="5" stroke-linecap="round"/><path d="M91 59q9 13 0 20q-10-5 0-20z" fill="#d6f6ff" stroke="#7fc7f3" stroke-width="1.5"/><ellipse cx="38" cy="26" rx="16" ry="8" fill="#fff" opacity=".3" transform="rotate(-28 38 26)"/></svg>`};
 function sparkleBurst(x,y){if(!motionEnabled)return;const box=$('treebox');for(let j=0;j<7;j++){const p=document.createElement('span');p.className='fly-particle';p.textContent=j%2?'✦':'✧';p.style.left=x+'%';p.style.top=y+'%';p.style.setProperty('--dx',`${Math.cos(j*Math.PI*2/7)*(23+j*3)}px`);p.style.setProperty('--dy',`${Math.sin(j*Math.PI*2/7)*(23+j*3)}px`);box.appendChild(p);p.addEventListener('animationend',()=>p.remove(),{once:true})}}
+function randomTreePosition(){
+  // Pick a random point in the canopy, preferring free space between faces.
+  let best, bestDistance=-1;
+  for(let attempt=0;attempt<36;attempt++){
+    const angle=Math.random()*Math.PI*2,r=Math.sqrt(Math.random());
+    const point={x:50+29*r*Math.cos(angle),y:34+22*r*Math.sin(angle)};
+    const distance=Math.min(...[...renderedVotes.values()].map(v=>Math.hypot(point.x-v.x,(point.y-v.y)*.67)),100);
+    if(distance>bestDistance){best=point;bestDistance=distance}
+  }
+  return best;
+}
+function flyToTree(record,delay){
+  if(!motionEnabled)return;
+  const box=$('treebox'),width=box.clientWidth,height=box.clientHeight;
+  const fromLeft=Math.random()>.5;
+  const dx=(fromLeft?-8:108)*width/100-record.x*width/100;
+  const dy=height*(.83-record.y/100);
+  const animation=record.element.animate([
+    {transform:`translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(1.5) rotate(${fromLeft?-22:22}deg)`,opacity:0},
+    {transform:`translate(calc(-50% + ${dx*.65}px),calc(-50% + ${dy*.22-55}px)) scale(1.45) rotate(${fromLeft?12:-12}deg)`,opacity:1,offset:.4},
+    {transform:'translate(-50%,calc(-50% - 14px)) scale(1.15) rotate(-6deg)',opacity:1,offset:.82},
+    {transform:'translate(-50%,-50%) scale(1) rotate(0deg)',opacity:1}
+  ],{duration:1650,delay,easing:'cubic-bezier(.25,.65,.3,1)',fill:'backwards'});
+  arrivalAnimations.add(animation);
+  animation.finished.then(()=>{if(record.element.isConnected)sparkleBurst(record.x,record.y)}).catch(()=>{}).finally(()=>arrivalAnimations.delete(animation));
+}
 function draw(data){
-  const all=Object.values(data||{}).flatMap(v=>Object.values(v||{})).filter(v=>v==='happy'||v==='blue');
-  const list=all.slice(0,70),h=all.filter(v=>v==='happy').length,b=all.length-h;
+  const all=Object.entries(data||{}).flatMap(([device,values])=>Object.entries(values||{}).filter(([,v])=>v==='happy'||v==='blue').map(([slot,kind])=>({key:device+'/'+slot,kind})));
+  const list=all.slice(-70),keys=new Set(list.map(v=>v.key)),h=all.filter(v=>v.kind==='happy').length;
   $('total').textContent=`🌼 ${all.length} bạn tham gia`;
   $('happyCount').textContent=`😊 ${h} bạn vui`;
-  $('blueCount').textContent=`😔 ${b} bạn chưa vui`;
-  const container=$('emojis');
-  // Keep existing faces to prevent the entire tree from flashing on every Firebase update.
-  let prefix=0;while(prefix<renderedVotes.length&&prefix<list.length&&renderedVotes[prefix]===list[prefix])prefix++;
-  while(container.children.length>prefix)container.lastElementChild.remove();
-  for(let i=prefix;i<list.length;i++){
-    const v=list[i], e=document.createElement('span');e.className='leaf-face new';
-    e.innerHTML=FACE_ART[v].replaceAll(v==='happy'?'goldFace':'blueFace',`fruitPaint${i}`);e.setAttribute('aria-label',v==='happy'?'Vui':'Chưa vui');
-    const slot=(i*23)%70, angle=slot*2.399963229728653, r=Math.sqrt((slot+.5)/70);
-    // Coordinates fit within the crown; stable even as new votes appear.
-    const x=50+30*r*Math.cos(angle),y=34+23*r*Math.sin(angle);
-    e.style.left=x+'%';e.style.top=y+'%';
-    e.style.setProperty('--enter',`${Math.min((i-prefix)*65,550)}ms`);
-    container.appendChild(e);
-    if(i>=renderedVotes.length&&i-prefix<5)setTimeout(()=>sparkleBurst(x,y),Math.min((i-prefix)*65,550)+280);
+  $('blueCount').textContent=`😔 ${all.length-h} bạn chưa vui`;
+  for(const [key,record] of renderedVotes)if(!keys.has(key)){record.element.getAnimations().forEach(a=>a.cancel());record.element.remove();renderedVotes.delete(key)}
+  const arrivals=[];
+  for(const {key,kind} of list){
+    let record=renderedVotes.get(key);
+    if(record?.kind===kind)continue;
+    const point=record||randomTreePosition();
+    if(record){record.element.getAnimations().forEach(a=>a.cancel());record.element.remove()}
+    const element=document.createElement('span');element.className='leaf-face';
+    element.innerHTML=`<span class="fruit-body winged-face">${FACE_ART[kind].replaceAll(kind==='happy'?'goldFace':'blueFace',`fruitPaint${++faceSequence}`)}</span>`;
+    element.setAttribute('role','img');element.setAttribute('aria-label',kind==='happy'?'Vui':'Chưa vui');
+    element.style.left=point.x+'%';element.style.top=point.y+'%';element.style.setProperty('--float-delay',`${-Math.random()*4}s`);
+    $('emojis').appendChild(element);
+    record={x:point.x,y:point.y,kind,element};renderedVotes.set(key,record);arrivals.push(record);
   }
-  renderedVotes=list.slice();
+  arrivals.forEach((record,i)=>flyToTree(record,Math.min(i*90,900)));
+  if(arrivals.length&&document.body.dataset.view==='teacher'){
+    playSticker(arrivals[arrivals.length-1].kind);
+    document.querySelectorAll('.treebox .garden-friend').forEach(friend=>{
+      if(motionEnabled)friend.animate([{translate:'0 0'},{translate:'0 -14px',offset:.45},{translate:'0 0'}],{duration:700});
+    });
+  }
 }
 function baseUrl(){return location.href.split('?')[0].split('#')[0]}
 function studentLink(){return `${baseUrl()}?room=${encodeURIComponent(room)}&mode=student`}
 function shareLink(){const link=studentLink();$('studentUrl').textContent=link;$('qr').replaceChildren();if(window.QRCode)new QRCode($('qr'),{text:link,width:160,height:160,colorDark:'#245c44',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});else $('qr').textContent='Dùng đường dẫn phía dưới';}
-function teacherView(){show('teacher');shareLink();$('share').classList.remove('hidden');$('toggleShare').setAttribute('aria-expanded','true');$('gardenLive').textContent='● Cảm xúc cập nhật trực tiếp';$('reset').disabled=!owner;say(owner?'Đã kết nối • Cây đang cập nhật trực tiếp':'Đang xem cây (không có quyền xóa)')}
+function teacherView(){$('demoEmotions').classList.add('hidden');show('teacher');shareLink();$('share').classList.remove('hidden');$('toggleShare').setAttribute('aria-expanded','true');$('gardenLive').textContent='● Cảm xúc cập nhật trực tiếp';$('reset').disabled=!owner;say(owner?'Đã kết nối • Cây đang cập nhật trực tiếp':'Đang xem cây (không có quyền xóa)')}
 function studentView(){show('student');$('studentDone').classList.add('hidden');$('studentQuestion').classList.remove('hidden');step=1;updateSteps();say('Mỗi iPad dành cho hai bạn cùng bàn')}
 function updateSteps(){for(let n=1;n<=2;n++){const el=$('s'+n);el.classList.toggle('current',step===n);el.classList.toggle('complete',step>n);if(step===n)el.setAttribute('aria-current','step');else el.removeAttribute('aria-current')}}
 async function initFirebase(){if(!configured){$('connection').textContent='Chưa cấu hình Firebase • chỉ xem thử';say('Để đồng bộ iPad, hãy cấu hình Firebase theo file README.md');return false}
@@ -96,22 +133,19 @@ function listen(){api.onValue(api.ref(db,`rooms/${room}/votes`),s=>draw(s.val())
 async function openExisting(){room=params.get('room')||'';if(!/^[a-f0-9]{24}$/.test(room)){say('Mã phòng không hợp lệ');return}if(!await ensureReady())return;mode=params.get('mode')==='teacher'?'teacher':'student';api.onValue(api.ref(db,`rooms/${room}/meta`),s=>{const v=s.val();if(!v){say('Phòng không tồn tại hoặc đã bị xóa');return}owner=v.ownerUid===uid;if(mode==='teacher'){teacherView();listenOnce()}else studentView()},e=>say(`Không vào được phòng: ${e.message}`),{onlyOnce:true})}
 let subscribed=false;function listenOnce(){if(!subscribed){subscribed=true;listen()}}
 const motionPreference=matchMedia('(prefers-reduced-motion: reduce)');
-let motionEnabled=!motionPreference.matches,soundEnabled=false,audioContext;
-function syncMotion(){document.body.classList.toggle('motion-off',!motionEnabled);$('motionToggle').setAttribute('aria-pressed',String(motionEnabled));$('motionToggle').setAttribute('aria-label',motionEnabled?'Tắt hiệu ứng chuyển động':'Bật hiệu ứng chuyển động')}
+let motionEnabled=!motionPreference.matches;
+function syncMotion(){
+ document.body.classList.toggle('motion-off',!motionEnabled);
+ $('motionToggle').setAttribute('aria-pressed',String(motionEnabled));
+ $('motionToggle').setAttribute('aria-label',motionEnabled?'Tắt hiệu ứng chuyển động':'Bật hiệu ứng chuyển động');
+ if(!motionEnabled){document.querySelectorAll('.fly-particle').forEach(el=>el.remove());arrivalAnimations.forEach(animation=>animation.finish());document.querySelectorAll('.garden-friend').forEach(el=>el.getAnimations().forEach(a=>a.cancel()))}
+}
 syncMotion();
 $('motionToggle').onclick=()=>{motionEnabled=!motionEnabled;syncMotion()};
 motionPreference.addEventListener('change',event=>{motionEnabled=!event.matches;syncMotion()});
-$('soundToggle').onclick=()=>{
- soundEnabled=!soundEnabled;
- if(soundEnabled){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error();audioContext??=new Audio();audioContext.resume().catch(()=>{});}catch{soundEnabled=false;say('Trình duyệt này chưa hỗ trợ âm thanh.')}}
- $('soundToggle').setAttribute('aria-pressed',String(soundEnabled));$('soundToggle').setAttribute('aria-label',soundEnabled?'Tắt âm thanh':'Bật âm thanh');$('soundText').textContent='Âm thanh: '+(soundEnabled?'bật':'tắt');
- if(soundEnabled)playChime('happy');
-};
-function playChime(kind){
- if(!soundEnabled||!audioContext||audioContext.state!=='running')return;
- const notes=kind==='happy'?[523.25,659.25,783.99,1046.5]:[392,493.88,587.33,783.99];
- notes.forEach((frequency,i)=>{const oscillator=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime+i*.13;oscillator.type='sine';oscillator.frequency.value=frequency;gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.055,at+.025);gain.gain.exponentialRampToValueAtTime(.001,at+.65);oscillator.connect(gain);gain.connect(audioContext.destination);oscillator.start(at);oscillator.stop(at+.7);oscillator.onended=()=>{oscillator.disconnect();gain.disconnect()}});
-}
+startGardenAudio();
+decorateGarden();
+document.querySelectorAll('.face-art,.visual-face,.done-faces > span').forEach(el=>el.classList.add('winged-face'));
 // Small, finite decorative layers: no background animation loop or growing DOM.
 document.querySelectorAll('.atmosphere').forEach((layer,index)=>{
  for(let i=0;i<14;i++){const light=document.createElement('i');light.className='firefly';light.style.setProperty('--x',`${8+(i*37)%85}%`);light.style.setProperty('--y',`${15+(i*19)%76}%`);light.style.setProperty('--duration',`${4+i%5}s`);light.style.setProperty('--delay',`${-i*.7-index}s`);layer.appendChild(light)}
@@ -149,11 +183,11 @@ function animateCelebration(canvas,kind){
 function celebrate(v,source){
  const origin=source.querySelector('.face-art').getBoundingClientRect();
  const layer=document.createElement('dialog');layer.className='celebration '+v;layer.setAttribute('aria-labelledby','celebrateTitle');layer.setAttribute('aria-describedby','celebrateDescription');
- layer.innerHTML=`<canvas class="celebrate-canvas" aria-hidden="true"></canvas><div class="celebrate-scene"><div class="celebrate-visual" aria-hidden="true"><div class="celebrate-halo"></div><div class="celebrate-ring"></div><div class="celebrate-ring r2"></div><div class="celebrate-orbit"><span>${v==='happy'?'🌼':'💙'}</span><span>✦</span><span>${v==='happy'?'✧':'🤍'}</span><span>${v==='happy'?'🌸':'✧'}</span></div><div class="celebrate-face">${FACE_ART[v].replaceAll(v==='happy'?'goldFace':'blueFace','celebratePaint')}</div></div><h2 id="celebrateTitle">${v==='happy'?'Nụ cười của con nở hoa!':'Gửi con một cái ôm thật ấm!'}</h2><p id="celebrateDescription">${v==='happy'?'Một chút nắng từ con, cả khu vườn bừng sáng. Cảm ơn con đã sẻ chia!':'Có những ngày trong lòng hơi nhiều mây. Không sao đâu, con luôn được yêu thương.'}</p><span class="celebrate-caption">MỖI CẢM XÚC ĐỀU ĐÁNG QUÝ</span><button class="celebrate-close" autofocus>Tiếp tục ♡</button></div>`;
+ layer.innerHTML=`<canvas class="celebrate-canvas" aria-hidden="true"></canvas><div class="celebrate-scene"><div class="celebrate-visual" aria-hidden="true"><div class="celebrate-halo"></div><div class="celebrate-ring"></div><div class="celebrate-ring r2"></div><div class="celebrate-orbit"><span>${v==='happy'?'🌼':'💙'}</span><span>✦</span><span>${v==='happy'?'✧':'🤍'}</span><span>${v==='happy'?'🌸':'✧'}</span></div><div class="celebrate-face winged-face">${FACE_ART[v].replaceAll(v==='happy'?'goldFace':'blueFace','celebratePaint')}</div></div><h2 id="celebrateTitle">${v==='happy'?'Nụ cười của con nở hoa!':'Gửi con một cái ôm thật ấm!'}</h2><p id="celebrateDescription">${v==='happy'?'Một chút nắng từ con, cả khu vườn bừng sáng. Cảm ơn con đã sẻ chia!':'Có những ngày trong lòng hơi nhiều mây. Không sao đâu, con luôn được yêu thương.'}</p><span class="celebrate-caption">MỖI CẢM XÚC ĐỀU ĐÁNG QUÝ</span><button class="celebrate-close" autofocus>Tiếp tục ♡</button></div>`;
  document.body.appendChild(layer);layer.showModal();
  const target=layer.querySelector('.celebrate-face');const destination=target.getBoundingClientRect();
  if(motionEnabled)target.animate([{transform:`translate(${origin.x+origin.width/2-destination.x-destination.width/2}px,${origin.y+origin.height/2-destination.y-destination.height/2}px) scale(${origin.width/destination.width}) rotate(-12deg)`,opacity:.5},{transform:'translate(0,-16px) scale(1.12) rotate(6deg)',opacity:1,offset:.72},{transform:'translate(0,0) scale(1) rotate(0deg)',opacity:1}],{duration:850,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'});
- playChime(v);const stopParticles=animateCelebration(layer.querySelector('canvas'),v);
+ playSticker(v);const stopParticles=animateCelebration(layer.querySelector('canvas'),v);
  return new Promise(resolve=>{
   let finished=false,timer;
   const finish=()=>{if(finished)return;finished=true;clearTimeout(timer);stopParticles();layer.classList.add('leaving');setTimeout(()=>{layer.close();layer.remove();resolve()},motionEnabled?280:0)};
@@ -176,7 +210,8 @@ async function vote(v){
 }
 $('tryStudent').onclick=()=>{demo=false;previewStudent=true;studentView();say('Chế độ trải nghiệm • Hai bạn lần lượt chọn cảm xúc nhé!')};
 $('home').onclick=()=>{previewStudent=false;demo=false;show('start');say('')};
-$('create').onclick=createRoom;$('demo').onclick=()=>{demo=true;previewStudent=false;owner=false;show('teacher');$('gardenLive').textContent='✧ Khu vườn minh họa';$('toggleShare').setAttribute('aria-expanded','false');$('share').classList.add('hidden');$('reset').disabled=true;draw(Object.fromEntries(Array.from({length:15},(_,i)=>[String(i),{1:i%5?'happy':'blue',2:i%7?'happy':'blue'}])));say('Đây là dữ liệu minh họa. Muốn học sinh bấm thật, cần kết nối Firebase.')};document.querySelectorAll('[data-vote]').forEach(b=>b.onclick=()=>vote(b.dataset.vote));$('revote').onclick=async()=>{if(previewStudent){studentView();return}if(!room)return;try{await api.remove(api.ref(db,`rooms/${room}/votes/${uid}`));studentView()}catch(e){say(`Không chọn lại được: ${e.message}`)}};$('reset').onclick=async()=>{if(!owner||!confirm('Xóa tất cả cảm xúc đang hiển thị để bắt đầu lại?'))return;try{await api.remove(api.ref(db,`rooms/${room}/votes`));say('Đã làm trống khu vườn')}catch(e){say(`Không xóa được: ${e.message}`)}};$('fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};$('toggleShare').onclick=()=>{if(demo){say('Tạo khu vườn của lớp để nhận mã QR cho học sinh nhé!');return}$('share').classList.toggle('hidden');$('toggleShare').setAttribute('aria-expanded',String(!$('share').classList.contains('hidden')))};$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(studentLink());say('Đã sao chép link cho học sinh')}catch(e){say('Hãy sao chép trực tiếp đường dẫn hiển thị')}};
+$('create').onclick=createRoom;$('demo').onclick=()=>{demo=true;previewStudent=false;owner=false;show('teacher');$('gardenLive').textContent='✧ Khu vườn minh họa';$('toggleShare').setAttribute('aria-expanded','false');$('share').classList.add('hidden');$('reset').disabled=true;$('demoEmotions').classList.remove('hidden');demoVotes=Object.fromEntries(Array.from({length:10},(_,i)=>['example'+i,{1:i%5?'happy':'blue',2:i%7?'happy':'blue'}]));draw(demoVotes);say('Đây là dữ liệu minh họa. Muốn học sinh bấm thật, cần kết nối Firebase.')};document.querySelectorAll('[data-vote]').forEach(b=>b.onclick=()=>vote(b.dataset.vote));$('revote').onclick=async()=>{if(previewStudent){studentView();return}if(!room)return;try{await api.remove(api.ref(db,`rooms/${room}/votes/${uid}`));studentView()}catch(e){say(`Không chọn lại được: ${e.message}`)}};$('reset').onclick=async()=>{if(!owner||!confirm('Xóa tất cả cảm xúc đang hiển thị để bắt đầu lại?'))return;try{await api.remove(api.ref(db,`rooms/${room}/votes`));say('Đã làm trống khu vườn')}catch(e){say(`Không xóa được: ${e.message}`)}};$('fullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};$('toggleShare').onclick=()=>{if(demo){say('Tạo khu vườn của lớp để nhận mã QR cho học sinh nhé!');return}$('share').classList.toggle('hidden');$('toggleShare').setAttribute('aria-expanded',String(!$('share').classList.contains('hidden')))};$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(studentLink());say('Đã sao chép link cho học sinh')}catch(e){say('Hãy sao chép trực tiếp đường dẫn hiển thị')}};
+for(const [id,kind] of [['demoHappy','happy'],['demoBlue','blue']])$(id).onclick=()=>{if(!demo)return;demoVotes['new'+(++demoSequence)]={1:kind};draw(demoVotes)};
 if(params.has('room'))openExisting();
 </script>
 </body>
