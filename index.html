@@ -105,7 +105,7 @@ function draw(data){
     const point=record||randomTreePosition();
     if(record){record.element.getAnimations().forEach(a=>a.cancel());record.element.remove()}
     const element=document.createElement('span');element.className='leaf-face';
-    element.innerHTML=`<span class="fruit-body winged-face">${FACE_ART[kind].replaceAll(kind==='happy'?'goldFace':'blueFace',`fruitPaint${++faceSequence}`)}</span>`;
+    element.innerHTML=`<span class="fruit-body${kind==='happy'?' winged-face':''}">${FACE_ART[kind].replaceAll(kind==='happy'?'goldFace':'blueFace',`fruitPaint${++faceSequence}`)}</span>`;
     element.setAttribute('role','img');element.setAttribute('aria-label',kind==='happy'?'Vui':'Chưa vui');
     element.style.left=point.x+'%';element.style.top=point.y+'%';element.style.setProperty('--float-delay',`${-Math.random()*4}s`);
     $('emojis').appendChild(element);
@@ -145,7 +145,7 @@ $('motionToggle').onclick=()=>{motionEnabled=!motionEnabled;syncMotion()};
 motionPreference.addEventListener('change',event=>{motionEnabled=!event.matches;syncMotion()});
 startGardenAudio();
 decorateGarden();
-document.querySelectorAll('.face-art,.visual-face,.done-faces > span').forEach(el=>el.classList.add('winged-face'));
+document.querySelectorAll('.happy .face-art,.happy-preview,.done-faces > span:first-child').forEach(el=>el.classList.add('winged-face'));
 // Small, finite decorative layers: no background animation loop or growing DOM.
 document.querySelectorAll('.atmosphere').forEach((layer,index)=>{
  for(let i=0;i<14;i++){const light=document.createElement('i');light.className='firefly';light.style.setProperty('--x',`${8+(i*37)%85}%`);light.style.setProperty('--y',`${15+(i*19)%76}%`);light.style.setProperty('--duration',`${4+i%5}s`);light.style.setProperty('--delay',`${-i*.7-index}s`);layer.appendChild(light)}
@@ -183,7 +183,7 @@ function animateCelebration(canvas,kind){
 function celebrate(v,source){
  const origin=source.querySelector('.face-art').getBoundingClientRect();
  const layer=document.createElement('dialog');layer.className='celebration '+v;layer.setAttribute('aria-labelledby','celebrateTitle');layer.setAttribute('aria-describedby','celebrateDescription');
- layer.innerHTML=`<canvas class="celebrate-canvas" aria-hidden="true"></canvas><div class="celebrate-scene"><div class="celebrate-visual" aria-hidden="true"><div class="celebrate-halo"></div><div class="celebrate-ring"></div><div class="celebrate-ring r2"></div><div class="celebrate-orbit"><span>${v==='happy'?'🌼':'💙'}</span><span>✦</span><span>${v==='happy'?'✧':'🤍'}</span><span>${v==='happy'?'🌸':'✧'}</span></div><div class="celebrate-face winged-face">${FACE_ART[v].replaceAll(v==='happy'?'goldFace':'blueFace','celebratePaint')}</div></div><h2 id="celebrateTitle">${v==='happy'?'Nụ cười của con nở hoa!':'Gửi con một cái ôm thật ấm!'}</h2><p id="celebrateDescription">${v==='happy'?'Một chút nắng từ con, cả khu vườn bừng sáng. Cảm ơn con đã sẻ chia!':'Có những ngày trong lòng hơi nhiều mây. Không sao đâu, con luôn được yêu thương.'}</p><span class="celebrate-caption">MỖI CẢM XÚC ĐỀU ĐÁNG QUÝ</span><button class="celebrate-close" autofocus>Tiếp tục ♡</button></div>`;
+ layer.innerHTML=`<canvas class="celebrate-canvas" aria-hidden="true"></canvas><div class="celebrate-scene"><div class="celebrate-visual" aria-hidden="true"><div class="celebrate-halo"></div><div class="celebrate-ring"></div><div class="celebrate-ring r2"></div><div class="celebrate-orbit"><span>${v==='happy'?'🌼':'💙'}</span><span>✦</span><span>${v==='happy'?'✧':'🤍'}</span><span>${v==='happy'?'🌸':'✧'}</span></div><div class="celebrate-face${v==='happy'?' winged-face':''}">${FACE_ART[v].replaceAll(v==='happy'?'goldFace':'blueFace','celebratePaint')}</div></div><h2 id="celebrateTitle">${v==='happy'?'Nụ cười của con nở hoa!':'Gửi con một cái ôm thật ấm!'}</h2><p id="celebrateDescription">${v==='happy'?'Một chút nắng từ con, cả khu vườn bừng sáng. Cảm ơn con đã sẻ chia!':'Có những ngày trong lòng hơi nhiều mây. Không sao đâu, con luôn được yêu thương.'}</p><span class="celebrate-caption">MỖI CẢM XÚC ĐỀU ĐÁNG QUÝ</span><button class="celebrate-close" autofocus>Tiếp tục ♡</button></div>`;
  document.body.appendChild(layer);layer.showModal();
  const target=layer.querySelector('.celebrate-face');const destination=target.getBoundingClientRect();
  if(motionEnabled)target.animate([{transform:`translate(${origin.x+origin.width/2-destination.x-destination.width/2}px,${origin.y+origin.height/2-destination.y-destination.height/2}px) scale(${origin.width/destination.width}) rotate(-12deg)`,opacity:.5},{transform:'translate(0,-16px) scale(1.12) rotate(6deg)',opacity:1,offset:.72},{transform:'translate(0,0) scale(1) rotate(0deg)',opacity:1}],{duration:850,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'});
