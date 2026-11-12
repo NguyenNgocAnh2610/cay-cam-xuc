@@ -92,9 +92,9 @@ body.motion-off *,body.motion-off *:before,body.motion-off *:after{animation:non
 @media(max-width:440px){.garden-live{left:8px;top:8px;font-size:clamp(20px,5.2vw,23px);padding:5px 9px;border-width:1px;border-radius:11px}}
 
 /* A complete flower corolla surrounds the smiling center. */
-.flower-ring{position:absolute;inset:-24%;z-index:1;pointer-events:none;animation:flower-turn 36s linear infinite;filter:drop-shadow(0 3px 2px #88614726)}
-.flower-petal{position:absolute;left:35%;top:0;width:30%;height:50%;transform-origin:50% 100%;rotate:var(--petal-angle);border-radius:60% 60% 42% 42%;border:1px solid #ffffffb3;background:radial-gradient(ellipse at 35% 18%,#ffffffaa,transparent 45%),linear-gradient(var(--petal-light),var(--petal-color) 74%);box-shadow:inset 0 3px 4px #ffffff77,inset 0 -4px 7px #b76b7c22;animation:flower-bloom 3.4s ease-in-out infinite;animation-delay:var(--petal-delay)}
+.flower-ring{position:absolute;inset:-24%;z-index:1;pointer-events:none;animation:flower-sway 5s ease-in-out infinite;filter:drop-shadow(0 3px 2px #88614726)}
+.flower-petal{position:absolute;left:35%;top:0;width:30%;height:50%;transform-origin:50% 100%;rotate:var(--petal-angle);border-radius:60% 60% 42% 42%;border:1px solid #ffffffb3;background:radial-gradient(ellipse at 35% 18%,#ffffffaa,transparent 45%),linear-gradient(var(--petal-light),var(--petal-color) 74%);box-shadow:inset 0 3px 4px #ffffff77,inset 0 -4px 7px #b76b7c22;animation:flower-petal-flap 1.1s ease-in-out infinite alternate;animation-delay:var(--petal-delay)}
 .done-faces{gap:32px}
-@keyframes flower-turn{to{transform:rotate(360deg)}}
-@keyframes flower-bloom{0%,100%{transform:scaleY(.96);filter:saturate(1)}50%{transform:scaleY(1.035);filter:saturate(1.15) brightness(1.04)}}
+@keyframes flower-sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes flower-petal-flap{from{transform:perspective(350px) rotateX(-32deg) scaleY(.86);filter:saturate(1.08)}to{transform:perspective(350px) rotateX(24deg) scaleY(1.09);filter:saturate(1.22) brightness(1.04)}}
 @media(prefers-reduced-motion:reduce){.flower-ring,.flower-petal{animation:none!important}}
