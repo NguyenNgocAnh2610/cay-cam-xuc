@@ -30,23 +30,14 @@ body.motion-off *,body.motion-off *:before,body.motion-off *:after{animation:non
 @media(max-width:440px){.shell{width:calc(100% - 28px)}.brand{gap:8px}.brand strong{font-size:17px}.brand small{font-size:7px}.brand-icon{width:36px;height:36px;font-size:22px}.title{font-size:46px}.hero-description{font-size:13px}.hero-actions button{font-size:11px;padding:12px 13px;gap:7px}.hero .eyebrow{font-size:9px;letter-spacing:1.2px}.hero-visual{width:94%}.sticker-top{font-size:9px;padding:8px 10px;left:-8px;top:18px}.sticker-bottom{font-size:10px;padding:9px 12px;right:-8px}.floating-sticker .sticker-icon{font-size:21px}.visual-face{width:49px;height:49px}.visual-face.blue-preview{width:42px;height:42px}.student-world{padding:0 9px 18px;margin:0 -2px}.choicegrid{gap:10px}.choice{min-height:277px;border-width:2px;padding:17px 7px}.face-stage{width:126px;height:133px}.face-art{width:110px;height:110px}.choice-label{font-size:20px;max-width:150px}.choice-caption{font-size:10px}.touch-hint{font-size:9px;margin-top:15px}.view-heading h1{font-size:28px}.view-heading .eyebrow{font-size:9px}.student-reassurance{font-size:10px}.step{font-size:11px}.step-line{width:35px}.tree-label{font-size:10px;padding:5px 10px}.count{font-size:10px;padding:7px 9px}.garden-live{font-size:8px}.leaf-face{width:21px}.big-message{font-size:29px}.done-panel{padding:35px 16px}.footer-note{font-size:10px}.celebrate-visual{width:220px;height:220px}.celebrate-face{width:145px;height:145px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}.firefly,.petal{display:none}}
 
-/* Six jewel-colored flower petals form a light, animated pair of wings. */
+/* The blue face keeps its original pair of softly flapping white wings. */
 .winged-face{position:relative;isolation:isolate;overflow:visible}
 .winged-face>svg{position:relative;z-index:2}
-.petal-wings{position:absolute;inset:0;z-index:1;pointer-events:none}
-.petal-wing{position:absolute;top:0;width:56%;height:100%;animation:petal-wing-flutter 1.15s ease-in-out infinite alternate;filter:drop-shadow(0 3px 2px #71528c30)}
-.petal-wing.left{left:-32%;transform-origin:100% 50%;--wing-angle:-9deg}
-.petal-wing.right{right:-32%;transform-origin:0 50%;--wing-angle:9deg;animation-delay:-.28s}
-.petal-wing i{position:absolute;top:34%;width:100%;height:32%;border:1px solid #ffffffbc;border-radius:70% 55% 55% 70%;box-shadow:inset 0 3px 5px #ffffff80,inset 0 -3px 4px #b3489833;animation:petal-shimmer 2.8s ease-in-out infinite alternate}
-.petal-wing.left i{right:0;transform-origin:100% 50%}
-.petal-wing.right i{left:0;transform-origin:0 50%;border-radius:55% 70% 70% 55%}
-.petal-wing i:nth-child(1){background:radial-gradient(ellipse at 30% 25%,#ffe3fb,transparent 55%),linear-gradient(120deg,#ff83c5,#d46cf0);animation-delay:-.6s}
-.petal-wing i:nth-child(2){background:radial-gradient(ellipse at 30% 25%,#fff8bc,transparent 55%),linear-gradient(120deg,#ffdc5a,#ff9477);animation-delay:-1.4s}
-.petal-wing i:nth-child(3){background:radial-gradient(ellipse at 30% 25%,#c3fff0,transparent 55%),linear-gradient(120deg,#69e1c5,#70b9ff);animation-delay:-2.2s}
-.petal-wing.left i:nth-child(1){rotate:36deg}.petal-wing.right i:nth-child(1){rotate:-36deg}
-.petal-wing.left i:nth-child(3){rotate:-36deg}.petal-wing.right i:nth-child(3){rotate:36deg}
-@keyframes petal-wing-flutter{from{transform:rotate(var(--wing-angle)) scaleY(.82)}to{transform:rotate(calc(var(--wing-angle)*-1)) scaleY(1.06)}}
-@keyframes petal-shimmer{from{filter:saturate(1);scale:1}to{filter:saturate(1.2) brightness(1.06);scale:1.025}}
+.white-wings{position:absolute;inset:0;z-index:1;pointer-events:none}
+.white-wing{position:absolute;top:27%;width:47%;height:49%;border:2px solid #fffdf4;box-shadow:inset 0 -3px 5px #b7dbea60,0 3px 4px #47735e20;animation:white-wing-flap .42s ease-in-out infinite alternate}
+.white-wing.left{left:-31%;border-radius:90% 15% 65% 35%;transform-origin:100% 65%;--wing-angle:-24deg;background:repeating-linear-gradient(165deg,transparent 0 16%,#c8e9f487 17% 20%,transparent 21% 30%),linear-gradient(125deg,#fff 25%,#f4fbff 65%,#c4e7f4)}
+.white-wing.right{right:-31%;border-radius:15% 90% 35% 65%;transform-origin:0 65%;--wing-angle:24deg;animation-delay:-.12s;background:repeating-linear-gradient(15deg,transparent 0 16%,#c8e9f487 17% 20%,transparent 21% 30%),linear-gradient(235deg,#fff 25%,#f4fbff 65%,#c4e7f4)}
+@keyframes white-wing-flap{from{transform:rotate(var(--wing-angle)) scaleY(1)}to{transform:rotate(calc(var(--wing-angle)*-1)) scaleY(.55)}}
 .visual-face{width:clamp(74px,8vw,110px);height:auto;aspect-ratio:1}
 .visual-face.happy-preview{top:25%;left:28%}
 .visual-face.blue-preview{width:clamp(64px,7vw,90px);height:auto;top:43%;right:22%}
@@ -60,7 +51,7 @@ body.motion-off *,body.motion-off *:before,body.motion-off *:after{animation:non
 .leaf-face{width:clamp(24px,5.4vw,58px);aspect-ratio:1;height:auto;animation:none;filter:drop-shadow(0 5px 4px #24472960)}
 .leaf-face:before,.leaf-face:after{display:none}
 .fruit-body{display:block;width:100%;height:100%;animation:fruit-hover 3.5s ease-in-out infinite;animation-delay:var(--float-delay,0s)}
-.leaf-face .petal-wing{animation-duration:.85s}.leaf-face .petal-wing i{border-width:.75px}
+.leaf-face .white-wing{border-width:1px;animation-duration:.28s}
 /* A small cast of storybook friends lives around the edges of the garden. */
 .garden-friends{position:absolute;inset:0;z-index:7;pointer-events:none;overflow:hidden;border-radius:inherit}
 .garden-friend{position:absolute;display:block;width:18%;aspect-ratio:1;bottom:5%;filter:drop-shadow(0 5px 3px #314d3328)}
@@ -90,7 +81,7 @@ body.motion-off *,body.motion-off *:before,body.motion-off *:after{animation:non
 @keyframes music-sway{0%,100%{rotate:-12deg}50%{rotate:12deg}}
 @media(max-width:760px){.face-stage{width:185px;height:180px}.face-art{width:142px;height:142px}.choicegrid{gap:22px}.choice{padding-top:26px}.visual-face{width:80px}.visual-face.blue-preview{width:68px}.celebrate-face{width:170px;height:170px}.student-world .garden-friend{width:56px}.student-world .letter-a{width:96px;left:calc(50% - 48px)}.student-world .squirrel{right:17%;width:44px}}
 @media(max-width:440px){.face-stage{width:130px;height:155px}.face-art{width:104px;height:104px}.choicegrid{gap:14px}.choice{padding-left:4px;padding-right:4px}.face-stage .orbit-symbol{display:none}.visual-face{width:70px}.visual-face.blue-preview{width:58px}.leaf-face{width:26px}.student-world .squirrel{display:none}.student-world .garden-friend{width:50px}.student-world .letter-a{width:86px;left:calc(50% - 43px)}}
-@media(prefers-reduced-motion:reduce){.petal-wing,.petal-wing i,.friend-sprite,.fruit-body{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.white-wing,.friend-sprite,.fruit-body{animation:none!important}}
 .visual-face.winged-face{position:absolute}
 
 /* The class name sits inside the illustration where the live badge used to be. */
